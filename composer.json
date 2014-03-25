@@ -1,0 +1,26 @@
+{
+    "name": "spiffy/spiffy-inject",
+    "authors": [
+        {
+            "name": "Kyle Spraggs",
+            "email": "theman@spiffyjr.me"
+        }
+    ],
+    "description": "SpiffyInject is a light-weight, HHVM compatible, and dependency lite dependency injection container.",
+    "require": {
+        "doctrine/annotations": "~1.1",
+        "php": ">=5.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.0",
+        "squizlabs/php_codesniffer": "~1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Spiffy\\Inject\\": [
+                "src/",
+                "test/"
+            ]
+        }
+    }
+}
