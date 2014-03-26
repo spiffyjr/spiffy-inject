@@ -6,7 +6,7 @@
             "email": "theman@spiffyjr.me"
         }
     ],
-    "description": "SpiffyInject is a light-weight, HHVM compatible, and dependency lite dependency injection container.",
+    "description": "Spiffy\\Inject is a light-weight, HHVM compatible, and dependency lite dependency injection container.",
     "require": {
         "doctrine/annotations": "~1.1",
         "php": ">=5.4"
