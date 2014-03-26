@@ -210,7 +210,7 @@ $i->nject('foo', new \StdClass());
 // the values would be 'bar' and 'foo' respectively
 $i->wrap('foo', function(Injector $i, $name, $callable) {
     $foo = $callable();
-    $foo->bar = 'bar;
+    $foo->bar = 'bar';
     $foo->name = $name;
     
     return $foo;
