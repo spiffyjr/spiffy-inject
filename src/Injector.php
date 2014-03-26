@@ -227,7 +227,7 @@ class Injector implements \ArrayAccess
 
         $instance = $this->wrapService($name, $callback);
 
-        if (!$instance) {
+        if (null === $instance) {
             $instance = $callback();
         }
 
@@ -236,6 +236,11 @@ class Injector implements \ArrayAccess
         return $instance;
     }
 
+    /**
+     * @param string $name
+     * @param callable $callback
+     * @return mixed
+     */
     protected function wrapService($name, \Closure $callback)
     {
         if (!isset($this->wrappers[$name])) {
@@ -276,7 +281,7 @@ class Injector implements \ArrayAccess
         $class = isset($array[0]) ? $this->introspect($array[0]) : null;
 
         if (!class_exists($class)) {
-            throw new Exception\MissingClassException($class);
+            throw new Exception\MissingClassException($class, $name);
         }
 
         $args = isset($array[1]) ? $array[1] : [];

@@ -4,6 +4,10 @@ namespace Spiffy\Inject\Exception;
 
 class RecursiveDependencyException extends \RuntimeException
 {
+    /**
+     * @param string $name
+     * @param array $graph
+     */
     public function __construct($name, array $graph)
     {
         $graph[] = $name;

@@ -152,7 +152,11 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetThrowsExceptionForRecursion()
     {
-        $this->i->get('recursion');
+        $i = $this->i;
+        $i->nject('recursion', function(Injector $i) {
+            return $i->get('recursion');
+        });
+        $i->get('recursion');
     }
 
     /**
@@ -187,7 +191,11 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetUnsetSpecOnceComplete()
     {
-        $i = $this->i;
+        $i = new Injector();
+        $i->nject('foo', function() {});
+        $i->nject('bar', function() {});
+        $i->nject('baz', function() {});
+
         $refl = new \ReflectionClass($i);
         $prop = $refl->getProperty('specs');
         $prop->setAccessible(true);
@@ -235,20 +243,142 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('StdClass', $i->get('stdclass'));
     }
 
-    public function testCreateHandlesArrays()
+    /**
+     * @covers ::create, ::createFromArray, \Spiffy\Inject\Exception\MissingClassException::__construct
+     * @expectedException \Spiffy\Inject\Exception\MissingClassException
+     * @expectedExceptionMessage Class "Missing\Class" does not exist for service "doesnotexist"
+     */
+    public function testCreateFromArrayThrowsExceptionOnInvalidClass()
     {
-        $this->fail('implement');
+        $i = $this->i;
+        $i->nject('doesnotexist', ['Missing\Class']);
+        $i->nvoke('doesnotexist');
     }
 
-
-    public function testIntrospectionReplacesServices()
+    /**
+     * @covers ::create, ::createFromArray
+     */
+    public function testCreateHandlesArraysCreatesBasicClass()
     {
-        $this->fail('implement');
+        $i = $this->i;
+        $i->nject('array', ['StdClass']);
+
+        $this->assertInstanceOf('StdClass', $i->nvoke('array'));
     }
 
-    public function testIntrospectionReplacesParams()
+    /**
+     * @covers ::create, ::createFromArray
+     */
+    public function testCreateHandlesArraysCreatesParameterizedClass()
     {
-        $this->fail('implement');
+        $i = $this->i;
+        $i->nject(
+            'array',
+            [
+                'Spiffy\Inject\TestAsset\ConstructorParams',
+                [
+                    'foogly',
+                    'boogly'
+                ]
+            ]
+        );
+
+        $result = $i->nvoke('array');
+        $this->assertInstanceOf('Spiffy\Inject\TestAsset\ConstructorParams', $result);
+        $this->assertSame('foogly', $result->getFoo());
+        $this->assertSame('boogly', $result->getBar());
+    }
+
+    /**
+     * @covers ::create, ::createFromArray, ::introspect
+     */
+    public function testCreateHandlesArraysCreatesParameterizedClassFromParameters()
+    {
+        $i = $this->i;
+        $i['boogly'] = 'woogly';
+        $i->nject(
+            'array',
+            [
+                'Spiffy\Inject\TestAsset\ConstructorParams',
+                [
+                    'foogly',
+                    '$boogly'
+                ]
+            ]
+        );
+
+        $result = $i->nvoke('array');
+        $this->assertInstanceOf('Spiffy\Inject\TestAsset\ConstructorParams', $result);
+        $this->assertSame('foogly', $result->getFoo());
+        $this->assertSame('woogly', $result->getBar());
+    }
+
+    /**
+     * @covers ::create, ::createFromArray, ::introspect
+     */
+    public function testCreateHandlesArraysCreatesParameterizedClassFromService()
+    {
+        $foogly = new \StdClass();
+        $i = $this->i;
+        $i->nject('foogly', $foogly);
+        $i->nject(
+            'array',
+            [
+                'Spiffy\Inject\TestAsset\ConstructorParams',
+                [
+                    '@foogly',
+                    'boogly'
+                ]
+            ]
+        );
+
+        $result = $i->nvoke('array');
+        $this->assertInstanceOf('Spiffy\Inject\TestAsset\ConstructorParams', $result);
+        $this->assertSame($foogly, $result->getFoo());
+        $this->assertSame('boogly', $result->getBar());
+    }
+
+    /**
+     * @covers ::create, ::createFromArray, ::introspect
+     */
+    public function testCreateHandlesArraysCreatesParameterizedClassWithSetters()
+    {
+        $boogly = new \StdClass();
+
+        $i = $this->i;
+        $i['foogly'] = 'foogly';
+        $i->nject('boogly', $boogly);
+        $i->nject(
+            'array',
+            [
+                'Spiffy\Inject\TestAsset\ConstructorParams',
+                [
+                    'foo',
+                    'bar'
+                ],
+                [
+                    'setFoo' => '$foogly',
+                    'setBar' => '@boogly'
+                ]
+            ]
+        );
+
+        $result = $i->nvoke('array');
+        $this->assertInstanceOf('Spiffy\Inject\TestAsset\ConstructorParams', $result);
+        $this->assertSame('foogly', $result->getFoo());
+        $this->assertSame($boogly, $result->getBar());
+    }
+
+    /**
+     * @covers ::introspect, \Spiffy\Inject\Exception\ParameterDoesNotExistException
+     * @expectedException \Spiffy\Inject\Exception\ParameterDoesNotExistException
+     * @expectedExceptionMessage The parameter with name "param" does not exist
+     */
+    public function testIntrospectThrowsExceptionForInvalidParameter()
+    {
+        $i = $this->i;
+        $i->nject('paramexception', ['StdClass', '$param']);
+        $i->nvoke('paramexception');
     }
 
     /**
@@ -283,14 +413,39 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('bar', $object->foo);
     }
 
+    /**
+     * @covers ::create, ::wrapService
+     */
     public function testWrappersReturnNewInstance()
     {
-        $this->fail('implement');
+        $object = new \StdClass();
+        $i = $this->i;
+        $i->set('wrapper', $object);
+        $i->wrap('wrapper', function() {
+            return [];
+        });
+
+        $result = $i->get('wrapper');
+        $this->assertInternalType('array', $result);
     }
 
+    /**
+     * @covers ::create, ::decorateService
+     */
     public function testDecoratorsModifyInstance()
     {
-        $this->fail('implement');
+        $object = new \StdClass();
+        $i = $this->i;
+        $i->set('decorate', $object);
+        $i->decorate('decorate', function(Injector $i, \StdClass $obj) {
+            $obj->foo = 'bar';
+
+            return $obj;
+        });
+
+        $result = $i->get('decorate');
+        $this->assertSame($object, $result);
+        $this->assertSame('bar', $object->foo);
     }
 
     protected function setUp()
@@ -298,8 +453,5 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
         $i = $this->i = new Injector();
         $i->nject('foo', new \StdClass());
         $i->nject('bar', new \StdClass());
-        $i->nject('recursion', function(Injector $i) {
-            return $i->get('recursion');
-        });
     }
 }

@@ -5,13 +5,15 @@ namespace Spiffy\Inject\Exception;
 class MissingClassException extends \InvalidArgumentException
 {
     /**
-     * @param string $name
+     * @param string $className
+     * @param string $serviceName
      */
-    public function __construct($name)
+    public function __construct($className, $serviceName)
     {
         parent::__construct(sprintf(
-            'The class with name "%s" does not exist',
-            $name
+            'Class "%s" does not exist for service "%s"',
+            $className,
+            $serviceName
         ));
     }
 }
