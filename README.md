@@ -19,7 +19,7 @@ more about DI on [Wikipedia](http://en.wikipedia.org/wiki/Dependency_injection) 
 [Martin Fowler's](http://martinfowler.com/articles/injection.html) website. Spiffy\Inject aims to help you manage
 your parameters and services.
 
-### Parameters
+## Parameters
 
 ```php
 use Spiffy\Inject\Injector;
@@ -33,7 +33,7 @@ $i['foo'] = 'bar';
 echo $i['foo'];
 ```
 
-### Services
+## Services
 
 The primary purpose of Spiffy\Inject is for managing your services. You can create services in one of three ways:
  * Setting using a string class name
@@ -65,9 +65,11 @@ $i->nject('foo', ['StdClass']);
 // each method listed above is identical
 ```
 
-### Array Configuration
+## Array Configuration
 
 The array configuration has some additional options available to make it extremely flexible.
+
+### Constructor injection
 
 ```php
 use Spiffy\Inject\Injector;
@@ -86,5 +88,38 @@ class Foo
 
 // the resulting object will have 'string set to 'I am a string'
 // and 'int' set to '1'
-$i->nject('foo', ['Foo', ['I am a string', 1]);
+$i->nject('foo', ['Foo', ['I am a string', 1]]);
+```
+
+### Setting injection
+
+```php
+use Spiffy\Inject\Injector;
+
+$i = new Injector();
+
+// you can pass constructor parameters to the service
+class Foo
+{
+    public function __construct($int)
+    {
+        $this->int = $int;
+    }
+    
+    public function setString($string)
+    {
+        $this->string = $string;
+    }
+}
+
+// the resulting object will have 'string set to 'I am a string'
+// and 'int' set to '1'
+$i->nject(
+    'foo',
+    [
+        'Foo',
+        [1],
+        ['setString' => 'string']
+    ]
+);
 ```
