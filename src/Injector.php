@@ -32,6 +32,11 @@ class Injector implements \ArrayAccess
     /**
      * @var array
      */
+    protected $wrappers = [];
+
+    /**
+     * @var array
+     */
     protected $retrieving = [];
 
     /**
@@ -45,13 +50,33 @@ class Injector implements \ArrayAccess
     protected $specs = [];
 
     /**
+     * Proxy to set. Why you ask? Because $i->nject() is so damn cute, that's why.
+     *
+     * @see set
+     */
+    public function nject($name, $value)
+    {
+        $this->set($name, $value);
+    }
+
+    /**
+     * Proxy to get. Why you ask? Because $i->nvoke() is so damn cute, that's why.
+     *
+     * @see get
+     */
+    public function nvoke($name)
+    {
+        return $this->get($name);
+    }
+
+    /**
      * @param string $name
      * @param mixed $value
      * @throws Exception\ServiceExistsException
      */
     public function set($name, $value)
     {
-        if (isset($this->services[$name])) {
+        if (isset($this->specs[$name])) {
             throw new Exception\ServiceExistsException($name);
         }
         $this->specs[$name] = $value;
@@ -95,7 +120,16 @@ class Injector implements \ArrayAccess
      */
     public function decorate($name, $decorator)
     {
-        $this->decorators[$name] = $decorator;
+        $this->decorators[$name][] = $decorator;
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $wrapper
+     */
+    public function wrap($name, $wrapper)
+    {
+        $this->wrappers[$name][] = $wrapper;
     }
 
     /**
@@ -171,23 +205,64 @@ class Injector implements \ArrayAccess
     {
         $spec = $this->specs[$name];
 
-        if ($spec instanceof \Closure) {
-            return $spec($this);
+        $callback = function() use ($name, $spec) {
+            if ($spec instanceof \Closure) {
+                return $spec($this);
+            }
+
+            if (is_object($spec)) {
+                return $spec;
+            }
+
+            if (is_array($spec)) {
+                return $this->createFromArray($name, $spec);
+            }
+
+            if (is_string($spec) && class_exists($spec)) {
+                return new $spec();
+            }
+
+            throw new Exception\InvalidServiceException($name);
+        };
+
+        $instance = $this->wrapService($name, $callback);
+
+        if (!$instance) {
+            $instance = $callback();
         }
 
-        if (is_object($spec)) {
-            return $spec;
+        $this->decorateService($name, $instance);
+
+        return $instance;
+    }
+
+    protected function wrapService($name, \Closure $callback)
+    {
+        if (!isset($this->wrappers[$name])) {
+            return null;
         }
 
-        if (is_array($spec)) {
-            return $this->createFromArray($name, $spec);
+        $instance = null;
+        foreach ($this->wrappers[$name] as $wrapper) {
+            $instance = $wrapper($this, $name, $callback);
         }
 
-        if (is_string($spec) && class_exists($spec)) {
-            return new $spec();
+        return $instance;
+    }
+
+    /**
+     * @param string $name
+     * @param object $instance
+     */
+    protected function decorateService($name, $instance)
+    {
+        if (!isset($this->decorators[$name])) {
+            return;
         }
 
-        throw new Exception\InvalidServiceException($name);
+        foreach ($this->decorators[$name] as $decorator) {
+            $decorator($this, $instance);
+        }
     }
 
     /**
@@ -198,7 +273,7 @@ class Injector implements \ArrayAccess
      */
     protected function createFromArray($name, array $array)
     {
-        $class = isset($array[0]) ? $this->injectArg($array[0]) : null;
+        $class = isset($array[0]) ? $this->introspect($array[0]) : null;
 
         if (!class_exists($class)) {
             throw new Exception\MissingClassException($class);
@@ -206,43 +281,50 @@ class Injector implements \ArrayAccess
 
         $args = isset($array[1]) ? $array[1] : [];
         $setters = isset($array[2]) ? $array[2] : [];
-        if (!is_array($args)) {
-            $args = [$args];
-        }
 
+        $args = (array) $args;
         foreach ($args as &$arg) {
-            $arg = $this->injectArg($arg);
+            $arg = $this->introspect($arg);
         }
 
         $class = new \ReflectionClass($class);
         $instance = $class->newInstanceArgs($args);
 
+        $setters = (array) $setters;
         foreach ($setters as $method => $value) {
             if (method_exists($instance, $method)) {
-                $instance->$method($this->injectArg($value));
+                $instance->$method($this->introspect($value));
             }
-        }
-
-        if (isset($this->decorators[$name])) {
-            $decorator = $this->decorators[$name];
-            $decorator($this, $instance);
         }
 
         return $instance;
     }
 
     /**
-     * @param string $arg
+     * @param string $value
+     * @throws Exception\ParameterDoesNotExistException
      * @return mixed
      */
-    protected function injectArg($arg)
+    protected function introspect($value)
     {
-        if ($arg[0] == '@') {
-            $arg = $this->get(substr($arg, 1));
-        } else if ($arg[0] == '$') {
-            $key = substr($arg, 1);
-            $arg = isset($this->params[$key]) ? $this->params[$key] : null;
+        $identifiers = implode('', [$this->paramIdentifier, $this->serviceIdentifier]);
+        $regex = sprintf('/^([%s])(.*)/', preg_quote($identifiers));
+
+        if (!preg_match($regex, $value, $matches)) {
+            return $value;
         }
-        return $arg;
+
+        $identifier = $matches[1];
+        $name = $matches[2];
+
+        if ($identifier == $this->serviceIdentifier) {
+            return $this->get($name);
+        }
+
+        if (!$this->offsetExists($name)) {
+            throw new Exception\ParameterDoesNotExistException($name);
+        }
+
+        return $this->offsetGet($name);
     }
 }

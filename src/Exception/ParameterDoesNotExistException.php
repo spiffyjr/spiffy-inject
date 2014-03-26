@@ -2,7 +2,7 @@
 
 namespace Spiffy\Inject\Exception;
 
-class InvalidServiceException extends \InvalidArgumentException
+class ParameterDoesNotExistException extends \InvalidArgumentException
 {
     /**
      * @param string $name
@@ -10,7 +10,7 @@ class InvalidServiceException extends \InvalidArgumentException
     public function __construct($name)
     {
         parent::__construct(sprintf(
-            'Creating service "%s" failed: the service spec is invalid',
+            'The parameter with name "%s" does not exist',
             $name
         ));
     }
