@@ -205,7 +205,7 @@ class Injector implements \ArrayAccess
     {
         $spec = $this->specs[$name];
 
-        $callback = function() use ($name, $spec) {
+        $callback = function () use ($name, $spec) {
             if ($spec instanceof \Closure) {
                 return $spec($this);
             }
@@ -238,7 +238,7 @@ class Injector implements \ArrayAccess
 
     /**
      * @param string $name
-     * @param callable $callback
+     * @param \Closure $callback
      * @return mixed
      */
     protected function wrapService($name, \Closure $callback)
