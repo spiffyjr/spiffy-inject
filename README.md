@@ -222,5 +222,9 @@ $i->wrap('foo', function(Injector $i, $name, $callable) {
 });
 
 // output is 'ArrayObject'
-echo get_class($->nvoke('foo'));
+echo get_class($i->nvoke('foo'));
 ```
+
+## Why nvoke and nject?
+
+Because it's damn cute, that's why! If you prefer, though, you can use `set()` instead as `nject()` and `get()` instead of `nvoke()`. 
