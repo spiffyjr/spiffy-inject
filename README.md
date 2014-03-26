@@ -36,12 +36,31 @@ echo $i['foo'];
 ### Services
 
 The primary purpose of Spiffy\Inject is for managing your services. You can create services in one of three ways:
+ * Setting using a string class name
  * Setting the service directly
  * Creating the service through a factory closure
  * Using the array configuration
+
+All services are set through the `nject` method regardless of which style you choose. Each style has it's own advantages and disadvantages. It's you to you to decide which is the best approach to take for your application.
 
 ```php
 use Spiffy\Inject\Injector;
 
 $i = new Injector();
+
+// setting using the string class name
+$i->nject('foo', 'StdClass');
+
+// setting the service directly
+$i->nject('foo', new \StdClass());
+
+// setting the service using a closure factory
+$i->nject('foo', function() {
+  return new \StdClass();
+});
+
+// setting the service using array configuration
+$i->nject('foo', ['StdClass']);
+
+// each method listed above is identical
 ```
