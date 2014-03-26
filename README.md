@@ -43,6 +43,9 @@ The primary purpose of Spiffy\Inject is for managing your services. You can crea
 
 All services are set through the `nject` method regardless of which style you choose. Each style has it's own advantages and disadvantages. It's you to you to decide which is the best approach to take for your application.
 
+
+### Setting Services
+
 ```php
 use Spiffy\Inject\Injector;
 
@@ -63,6 +66,16 @@ $i->nject('foo', function() {
 $i->nject('foo', ['StdClass']);
 
 // each method listed above is identical
+```
+
+### Getting Services
+
+```php
+use Spiffy\Inject\Injector;
+
+// assuming the configuration from 'Setting Services' above
+// the following retrieves the 'foo' service
+$foo = $i->nvoke('foo');
 ```
 
 ## Array Configuration
@@ -91,7 +104,7 @@ class Foo
 $i->nject('foo', ['Foo', ['I am a string', 1]]);
 ```
 
-### Setting injection
+### Setter injection
 
 ```php
 use Spiffy\Inject\Injector;
@@ -114,12 +127,100 @@ class Foo
 
 // the resulting object will have 'string set to 'I am a string'
 // and 'int' set to '1'
-$i->nject(
-    'foo',
-    [
-        'Foo',
-        [1],
-        ['setString' => 'string']
-    ]
-);
+$i->nject('foo', ['Foo',[1],['setString' => 'string']]);
+```
+
+### Referencing other services and parameters
+
+Spiffy\Inject's array configuration includes the ability to reference other services when the string is prepended with
+special characters. By default you reference services with the `@` symbol and parameters with the `$` symbol. These can
+be modified using the `setServiceIdentifier` and `setParamIdentifier` methods respectively.
+
+```php
+use Spiffy\Inject\Injector;
+
+$i = new Injector();
+
+class Bar
+{
+}
+
+class Foo
+{
+    public function __construct(Bar $bar)
+    {
+        $this->bar = $bar;
+    }
+    
+    public function setBaz($baz)
+    {
+        $this->baz = $baz;
+    }
+}
+
+// set the 'baz' parameter to 'boogly'
+$i['baz'] = 'boogly';
+
+// set the 'bar' service to an instance of \Bar
+$i->nject('bar', new \Bar());
+
+// create the foo service using array configuration and parameter/service references
+$i->nject('foo', ['Foo',['@bar'],['setBaz' => '$baz']]);
+
+// the resulting Foo service would have '$this->bar' set to '\Bar' and '$this->baz' set to 'boogly'
+```
+
+## Decorating your services
+
+Sometimes you want to over-ride the services set your DI container without modifying the original configuration. Spiffy\Inject handles this by providing you with two types of decorators.
+
+### Decorate
+
+The `decorate` method allows you to take the service created and apply any modifications to it prior to having it returned. The decorate closure receives the injector and service as arguments.
+
+```php
+use Spiffy\Inject\Injector;
+
+$i = new Injector();
+$i->nject('foo', new \StdClass());
+$i->decorate('foo', function(Injector $i, \StdClass $foo) {
+    $foo->bar = 'bar';
+    $foo->baz = 'baz';
+});
+
+$foo = $i->nvoke('foo');
+
+// output is 'barbaz';
+echo $foo->bar;
+echo $foo->baz;
+```
+
+### Wrap
+
+The `wrap` method is much more powerful than `decorate`. Wrapping let's you completely change the object that's created or completely bypass the original configuration. The wrap closure receives three arguments: the injector, the name of the service, and the callable that creates the service.
+
+```php
+use Spiffy\Inject\Injector;
+
+$i = new Injector();
+$i->nject('foo', new \StdClass());
+
+// if we use the $callable available to the closure we receive an instance of the original service
+// the \StdClass object would have two properties: 'bar' and 'name'
+// the values would be 'bar' and 'foo' respectively
+$i->wrap('foo', function(Injector $i, $name, $callable) {
+    $foo = $callable();
+    $foo->bar = 'bar;
+    $foo->name = $name;
+    
+    return $foo;
+});
+
+// we can completely override the original service configuration by skipping the callable
+$i->wrap('foo', function(Injector $i, $name, $callable) {
+    return new \ArrayObject();
+});
+
+// output is 'ArrayObject'
+echo get_class($->nvoke('foo'));
 ```
