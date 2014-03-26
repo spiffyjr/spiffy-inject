@@ -64,3 +64,27 @@ $i->nject('foo', ['StdClass']);
 
 // each method listed above is identical
 ```
+
+### Array Configuration
+
+The array configuration has some additional options available to make it extremely flexible.
+
+```php
+use Spiffy\Inject\Injector;
+
+$i = new Injector();
+
+// you can pass constructor parameters to the service
+class Foo
+{
+    public function __construct($string, $int)
+    {
+        $this->string = $string;
+        $this->int = $int;
+    }
+}
+
+// the resulting object will have 'string set to 'I am a string'
+// and 'int' set to '1'
+$i->nject('foo', ['Foo', ['I am a string', 1]);
+```
