@@ -210,6 +210,10 @@ class Injector implements \ArrayAccess
                 return $spec($this);
             }
 
+            if ($spec instanceof ServiceFactory) {
+                return $spec->createService($this);
+            }
+
             if (is_object($spec)) {
                 return $spec;
             }

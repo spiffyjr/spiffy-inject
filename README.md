@@ -40,6 +40,7 @@ The primary purpose of Spiffy\Inject is for managing your services. You can crea
  * Setting the service directly
  * Creating the service through a factory closure
  * Using the array configuration
+ * Using an object that implements ServiceFactory
 
 All services are set through the `nject` method regardless of which style you choose. Each style has it's own advantages and disadvantages. It's you to you to decide which is the best approach to take for your application.
 
@@ -64,6 +65,16 @@ $i->nject('foo', function() {
 
 // setting the service using array configuration
 $i->nject('foo', ['StdClass']);
+
+// setting the service using an object that implements ServiceFactory
+class StdClassFactory implements ServiceFactory
+{
+    public function createService(Injector $i)
+    {
+        return new \StdClass();
+    }
+}
+$i->nject('foo', new StdClassFactory());
 
 // each method listed above is identical
 ```
@@ -118,7 +129,7 @@ class Foo
     {
         $this->int = $int;
     }
-    
+
     public function setString($string)
     {
         $this->string = $string;
@@ -151,7 +162,7 @@ class Foo
     {
         $this->bar = $bar;
     }
-    
+
     public function setBaz($baz)
     {
         $this->baz = $baz;
@@ -212,7 +223,7 @@ $i->wrap('foo', function(Injector $i, $name, $callable) {
     $foo = $callable();
     $foo->bar = 'bar';
     $foo->name = $name;
-    
+
     return $foo;
 });
 
@@ -227,4 +238,4 @@ echo get_class($i->nvoke('foo'));
 
 ## Why nvoke and nject?
 
-Because it's damn cute, that's why! If you prefer, though, you can use `set()` instead as `nject()` and `get()` instead of `nvoke()`. 
+Because it's damn cute, that's why! If you prefer, though, you can use `set()` instead as `nject()` and `get()` instead of `nvoke()`.

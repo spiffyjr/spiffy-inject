@@ -244,6 +244,16 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers ::create
+     */
+    public function testCreateHandlesServiceFactories()
+    {
+        $i = $this->i;
+        $i->set('factory', new TestAsset\TestFactory());
+        $this->assertInstanceOf('StdClass', $i->get('factory'));
+    }
+
+    /**
      * @covers ::create, ::createFromArray, \Spiffy\Inject\Exception\MissingClassException::__construct
      * @expectedException \Spiffy\Inject\Exception\MissingClassException
      * @expectedExceptionMessage Class "Missing\Class" does not exist for service "doesnotexist"
