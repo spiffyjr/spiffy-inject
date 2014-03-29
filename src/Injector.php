@@ -274,7 +274,11 @@ class Injector implements \ArrayAccess
         }
 
         foreach ($this->decorators[$name] as $decorator) {
-            $decorator($this, $instance);
+            if ($decorator instanceof ServiceDecorator) {
+                $decorator->decorateService($this, $instance);
+            } else {
+                $decorator($this, $instance);
+            }
         }
     }
 

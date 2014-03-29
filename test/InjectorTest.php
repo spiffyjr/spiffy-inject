@@ -2,6 +2,7 @@
 
 namespace Spiffy\Inject;
 
+use Spiffy\Inject\TestAsset\TestDecorator;
 use Spiffy\Inject\TestAsset\TestWrapper;
 
 /**
@@ -460,7 +461,7 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
     /**
      * @covers ::create, ::decorateService
      */
-    public function testDecoratorsModifyInstance()
+    public function testCallableDecoratorsModifyInstance()
     {
         $object = new \StdClass();
         $i = $this->i;
@@ -474,6 +475,22 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
         $result = $i->get('decorate');
         $this->assertSame($object, $result);
         $this->assertSame('bar', $object->foo);
+    }
+
+    /**
+     * @covers ::create, ::decorateService
+     */
+    public function testServiceDecoratorsModifyInstance()
+    {
+        $object = new \StdClass();
+        $object->value = __FUNCTION__;
+        $i = $this->i;
+        $i->set('decorate', $object);
+        $i->decorate('decorate', new TestDecorator());
+
+        $result = $i->get('decorate');
+        $this->assertSame($object, $result);
+        $this->assertTrue($result->didItWork);
     }
 
     protected function setUp()
