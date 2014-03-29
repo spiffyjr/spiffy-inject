@@ -255,8 +255,7 @@ class Injector implements \ArrayAccess
         foreach ($this->wrappers[$name] as $wrapper) {
             if ($wrapper instanceof ServiceWrapper) {
                 $instance = $wrapper->wrapService($this, $name, $callback);
-            }
-            else {
+            } else {
                 $instance = $wrapper($this, $name, $callback);
             }
         }
