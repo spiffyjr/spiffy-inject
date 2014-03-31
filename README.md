@@ -236,6 +236,41 @@ $i->wrap('foo', function(Injector $i, $name, $callable) {
 echo get_class($i->nvoke('foo'));
 ```
 
+Alternatively, you can provide an instance of a class implementing the `Spiffy\Inject\ServiceWrapper` interface:
+
+```php
+namespace My;
+
+use Spiffy\Inject\Injector;
+use Spiffy\Inject\ServiceWrapper;
+
+class FooWrapper implements ServiceWrapper
+{
+    public function wrapService(Injector $i, $name, $callable)
+    {
+        $foo = $callable();
+        $foo->bar = 'bar';
+        $foo->name = $name;
+
+        return $foo;
+    }
+}
+```
+
+```php
+use Spiffy\Inject\Injector;
+
+$i = new Injector();
+$i->nject('foo', new \StdClass());
+$i->wrap('foo', new \My\FooWrapper());
+
+$foo = $i->nvoke('foo');
+
+echo $foo->bar; // outputs 'bar'
+echo $foo->name; // outputs 'foo'
+```
+
+
 ## Why nvoke and nject?
 
 Because it's damn cute, that's why! If you prefer, though, you can use `set()` instead as `nject()` and `get()` instead of `nvoke()`.
