@@ -71,6 +71,15 @@ class Injector implements \ArrayAccess
 
     /**
      * @param string $name
+     * @return bool
+     */
+    public function has($name)
+    {
+        return array_key_exists($name, $this->specs);
+    }
+
+    /**
+     * @param string $name
      * @param mixed $value
      * @throws Exception\ServiceExistsException
      */
@@ -91,7 +100,7 @@ class Injector implements \ArrayAccess
      */
     public function get($name)
     {
-        if (isset($this->services[$name])) {
+        if (array_key_exists($name, $this->services)) {
             return $this->services[$name];
         }
 
@@ -99,7 +108,7 @@ class Injector implements \ArrayAccess
             throw new Exception\RecursiveDependencyException($name, $this->retrieving);
         }
 
-        if (!isset($this->specs[$name])) {
+        if (!array_key_exists($name, $this->specs)) {
             throw new Exception\ServiceDoesNotExistException($name);
         }
 
@@ -205,6 +214,29 @@ class Injector implements \ArrayAccess
     {
         $spec = $this->specs[$name];
 
+        $callback = $this->createInstanceCallback($name, $spec);
+        $instance = $this->wrapService($name, $callback);
+
+        if (null === $instance) {
+            $instance = $callback();
+        }
+
+        $this->decorateService($name, $instance);
+
+        return $instance;
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $spec
+     * @return callable
+     */
+    protected function createInstanceCallback($name, $spec)
+    {
+        if (is_string($spec) && class_exists($spec)) {
+            $spec = new $spec();
+        }
+
         $callback = function () use ($name, $spec) {
             if ($spec instanceof \Closure) {
                 return $spec($this);
@@ -222,22 +254,14 @@ class Injector implements \ArrayAccess
                 return $this->createFromArray($name, $spec);
             }
 
-            if (is_string($spec) && class_exists($spec)) {
-                return new $spec();
+            if (is_null($spec)) {
+                throw new Exception\NullServiceException($name);
             }
 
             throw new Exception\InvalidServiceException($name);
         };
 
-        $instance = $this->wrapService($name, $callback);
-
-        if (null === $instance) {
-            $instance = $callback();
-        }
-
-        $this->decorateService($name, $instance);
-
-        return $instance;
+        return $callback;
     }
 
     /**

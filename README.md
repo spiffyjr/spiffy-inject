@@ -48,8 +48,6 @@ All services are set through the `nject` method regardless of which style you ch
 ### Setting Services
 
 ```php
-use Spiffy\Inject\Injector;
-
 $i = new Injector();
 
 // setting using the string class name
@@ -79,11 +77,21 @@ $i->nject('foo', new StdClassFactory());
 // each method listed above is identical
 ```
 
+### Testing if a service exists
+
+```php
+// false
+$i->has('foo');
+
+$i->nject('foo', new \StdClass());
+
+// true
+$i->has('foo');
+```
+
 ### Getting Services
 
 ```php
-use Spiffy\Inject\Injector;
-
 // assuming the configuration from 'Setting Services' above
 // the following retrieves the 'foo' service
 $foo = $i->nvoke('foo');
@@ -96,8 +104,6 @@ The array configuration has some additional options available to make it extreme
 ### Constructor injection
 
 ```php
-use Spiffy\Inject\Injector;
-
 $i = new Injector();
 
 // you can pass constructor parameters to the service
@@ -118,8 +124,6 @@ $i->nject('foo', ['Foo', ['I am a string', 1]]);
 ### Setter injection
 
 ```php
-use Spiffy\Inject\Injector;
-
 $i = new Injector();
 
 // you can pass constructor parameters to the service
@@ -148,8 +152,6 @@ special characters. By default you reference services with the `@` symbol and pa
 be modified using the `setServiceIdentifier` and `setParamIdentifier` methods respectively.
 
 ```php
-use Spiffy\Inject\Injector;
-
 $i = new Injector();
 
 class Bar
@@ -190,8 +192,6 @@ Sometimes you want to over-ride the services set your DI container without modif
 The `decorate` method allows you to take the service created and apply any modifications to it prior to having it returned. The decorate closure receives the injector and service as arguments.
 
 ```php
-use Spiffy\Inject\Injector;
-
 $i = new Injector();
 $i->nject('foo', new \StdClass());
 $i->decorate('foo', function(Injector $i, \StdClass $foo) {
@@ -211,8 +211,6 @@ echo $foo->baz;
 The `wrap` method is much more powerful than `decorate`. Wrapping let's you completely change the object that's created or completely bypass the original configuration. The wrap closure receives three arguments: the injector, the name of the service, and the callable that creates the service.
 
 ```php
-use Spiffy\Inject\Injector;
-
 $i = new Injector();
 $i->nject('foo', new \StdClass());
 

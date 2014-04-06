@@ -24,6 +24,21 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers ::has
+     */
+    public function testHas()
+    {
+        $i = new Injector();
+        $this->assertFalse($i->has('foo'));
+
+        $i->nject('foo', null);
+        $this->assertTrue($i->has('foo'));
+
+        $i->nject('bar', 'bar');
+        $this->assertTrue($i->has('bar'));
+    }
+
+    /**
      * @covers ::set
      */
     public function testSet()
@@ -146,6 +161,19 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @covers ::get, \Spiffy\Inject\Exception\NullServiceException
+     * @expectedException \Spiffy\Inject\Exception\NullServiceException
+     * @expectedExceptionMessage Creating service "null" failed: the service result was null
+     */
+    public function testGetThrowsExceptionOnNullService()
+    {
+        $i = $this->i;
+        $i->nject('null', null);
+
+        $this->assertNull($i->get('null'));
+    }
+
+    /**
      * @covers ::get, \Spiffy\Inject\Exception\RecursiveDependencyException
      * @expectedException \Spiffy\Inject\Exception\RecursiveDependencyException
      * @expectedExceptionMessage Dependency recursion detected for "recursion": "recursion->recursion"
@@ -167,6 +195,18 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
     public function testGetThrowsExceptionForMissingService()
     {
         $this->i->get('doesnotexist');
+    }
+
+    /**
+     * @covers ::get, ::createInstanceCallback
+     */
+    public function testGetCreatesServicesFromStringsIfClassExists()
+    {
+        $i = $this->i;
+        $i->nject('class', 'Spiffy\Inject\TestAsset\TestFactory');
+        $result = $i->nvoke('class');
+
+        $this->assertInstanceOf('StdClass', $result);
     }
 
     /**
