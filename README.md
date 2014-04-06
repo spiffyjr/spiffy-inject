@@ -206,6 +206,39 @@ echo $foo->bar;
 echo $foo->baz;
 ```
 
+Alternatively, you can provide an instance of a class implementing the `Spiffy\Inject\ServiceDecorator` interface:
+
+```php
+
+namespace My;
+
+use Spiffy\Inject\Injector;
+use Spiffy\Inject\ServiceDecorator;
+
+class FooDecorator implements ServiceDecorator
+{
+    public function decorateService(Injector $i, $instance)
+    {
+        $instance->bar = 'bar';
+        $instance->baz = 'baz';
+    }
+}
+```
+
+```php
+use Spiffy\Inject\Injector;
+
+$i = new Injector();
+$i->nject('foo', new \StdClass());
+$i->decorate('foo', new \My\FooDecorator());
+
+$foo = $i->nvoke('foo');
+
+// output is 'barbaz';
+echo $foo->bar;
+echo $foo->baz;
+```
+
 ### Wrap
 
 The `wrap` method is much more powerful than `decorate`. Wrapping let's you completely change the object that's created or completely bypass the original configuration. The wrap closure receives three arguments: the injector, the name of the service, and the callable that creates the service.
@@ -233,6 +266,41 @@ $i->wrap('foo', function(Injector $i, $name, $callable) {
 // output is 'ArrayObject'
 echo get_class($i->nvoke('foo'));
 ```
+
+Alternatively, you can provide an instance of a class implementing the `Spiffy\Inject\ServiceWrapper` interface:
+
+```php
+namespace My;
+
+use Spiffy\Inject\Injector;
+use Spiffy\Inject\ServiceWrapper;
+
+class FooWrapper implements ServiceWrapper
+{
+    public function wrapService(Injector $i, $name, $callable)
+    {
+        $foo = $callable();
+        $foo->bar = 'bar';
+        $foo->name = $name;
+
+        return $foo;
+    }
+}
+```
+
+```php
+use Spiffy\Inject\Injector;
+
+$i = new Injector();
+$i->nject('foo', new \StdClass());
+$i->wrap('foo', new \My\FooWrapper());
+
+$foo = $i->nvoke('foo');
+
+echo $foo->bar; // outputs 'bar'
+echo $foo->name; // outputs 'foo'
+```
+
 
 ## Why nvoke and nject?
 

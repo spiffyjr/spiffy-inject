@@ -277,7 +277,11 @@ class Injector implements \ArrayAccess
 
         $instance = null;
         foreach ($this->wrappers[$name] as $wrapper) {
-            $instance = $wrapper($this, $name, $callback);
+            if ($wrapper instanceof ServiceWrapper) {
+                $instance = $wrapper->wrapService($this, $name, $callback);
+            } else {
+                $instance = $wrapper($this, $name, $callback);
+            }
         }
 
         return $instance;
@@ -294,7 +298,11 @@ class Injector implements \ArrayAccess
         }
 
         foreach ($this->decorators[$name] as $decorator) {
-            $decorator($this, $instance);
+            if ($decorator instanceof ServiceDecorator) {
+                $decorator->decorateService($this, $instance);
+            } else {
+                $decorator($this, $instance);
+            }
         }
     }
 
