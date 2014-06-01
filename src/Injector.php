@@ -154,7 +154,7 @@ class Injector implements \ArrayAccess
      */
     public function offsetGet($offset)
     {
-        return $this->params[$offset];
+        return $this->offsetExists($offset) ? $this->params[$offset] : null;
     }
 
     /**
@@ -331,6 +331,10 @@ class Injector implements \ArrayAccess
         $class = new \ReflectionClass($class);
         $instance = $class->newInstanceArgs($args);
 
+        if ($instance instanceof ServiceFactory) {
+            $instance = $instance->createService($this);
+        }
+
         $setters = (array) $setters;
         foreach ($setters as $method => $value) {
             if (method_exists($instance, $method)) {
@@ -344,28 +348,49 @@ class Injector implements \ArrayAccess
     /**
      * @param string $value
      * @throws Exception\ParameterDoesNotExistException
+     * @throws Exception\ParameterKeyDoesNotExistException
      * @return mixed
      */
     protected function introspect($value)
     {
-        $identifiers = implode('', [$this->paramIdentifier, $this->serviceIdentifier]);
-        $regex = sprintf('/^([%s])(.*)/', preg_quote($identifiers));
-
-        if (!preg_match($regex, $value, $matches)) {
+        if ($value[0] !== $this->paramIdentifier && $value[0] !== $this->serviceIdentifier) {
             return $value;
         }
 
-        $identifier = $matches[1];
-        $name = $matches[2];
+        $identifier = $value[0];
+        $name = substr($value, 1);
 
         if ($identifier == $this->serviceIdentifier) {
             return $this->get($name);
+        }
+
+        $paramString = '';
+        if (preg_match('@([^\[]+)\[[^\]]+\]@', $name, $matches)) {
+            $paramString = str_replace($matches[1], '', $name);
+            $name = $matches[1];
         }
 
         if (!$this->offsetExists($name)) {
             throw new Exception\ParameterDoesNotExistException($name);
         }
 
-        return $this->offsetGet($name);
+        $original = $paramString;
+        $value = $this->offsetGet($name);
+        while (preg_match('@^(\[([^\]]+)\])@', $paramString, $matches)) {
+            $key = $matches[2];
+            $paramString = str_replace($matches[1], '', $paramString);
+
+            if (!isset($value[$key])) {
+                throw new Exception\ParameterKeyDoesNotExistException($name, $original);
+            }
+
+            $value = $value[$key];
+
+            if (empty($paramString)) {
+                break;
+            }
+        }
+
+        return $value;
     }
 }

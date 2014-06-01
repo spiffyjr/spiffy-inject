@@ -322,7 +322,7 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
     /**
      * @covers ::create, ::createFromArray
      */
-    public function testCreateHandlesArraysCreatesParameterizedClass()
+    public function testCreateFromArrayCreatesParameterizedClass()
     {
         $i = $this->i;
         $i->nject(
@@ -345,7 +345,7 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
     /**
      * @covers ::create, ::createFromArray, ::introspect
      */
-    public function testCreateHandlesArraysCreatesParameterizedClassFromParameters()
+    public function testCreateFromArrayCreatesParameterizedClassFromParameters()
     {
         $i = $this->i;
         $i['boogly'] = 'woogly';
@@ -364,6 +364,57 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Spiffy\Inject\TestAsset\ConstructorParams', $result);
         $this->assertSame('foogly', $result->getFoo());
         $this->assertSame('woogly', $result->getBar());
+    }
+
+    /**
+     * @covers ::create, ::createFromArray, ::introspect
+     */
+    public function testCreateFromArrayHandlesNestedParameters()
+    {
+        $i = $this->i;
+        $i['boogly'] = [
+            'woogly' => [
+                'foogly' => 'zoogly'
+            ]
+        ];
+        $i->nject(
+            'array',
+            [
+                'Spiffy\Inject\TestAsset\ConstructorParams',
+                [
+                    'foogly',
+                    '$boogly[woogly][foogly]'
+                ]
+            ]
+        );
+
+        $result = $i->nvoke('array');
+        $this->assertInstanceOf('Spiffy\Inject\TestAsset\ConstructorParams', $result);
+        $this->assertSame('foogly', $result->getFoo());
+        $this->assertSame('zoogly', $result->getBar());
+    }
+
+    /**
+     * @covers ::create, ::createFromArray, ::introspect
+     * @expectedException \Spiffy\Inject\Exception\ParameterKeyDoesNotExistException
+     * @expectedExceptionMessage The key "[woogly][zoogly]" does not exist in parameter "boogly"
+     */
+    public function testCreateFromArrayThrowsExceptionWhenMissingKeyForNestedParameter()
+    {
+        $i = $this->i;
+        $i['boogly'] = 'foogly';
+        $i->nject(
+            'array',
+            [
+                'Spiffy\Inject\TestAsset\ConstructorParams',
+                [
+                    'foogly',
+                    '$boogly[woogly][zoogly]'
+                ]
+            ]
+        );
+
+        $i->nvoke('array');
     }
 
     /**
@@ -444,6 +495,17 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
         $i = $this->i;
         $i->set('invalid', true);
         $i->get('invalid');
+    }
+
+    /**
+     * @covers ::create, ::createFroMArray
+     */
+    public function testCreateFromArrayCreatesServiceIfInstanceIsServiceFactory()
+    {
+        $i = $this->i;
+        $i->nject('factory', ['Spiffy\Inject\TestAsset\TestFactory']);
+
+        $this->assertInstanceOf('StdClass', $i->nvoke('factory'));
     }
 
     /**

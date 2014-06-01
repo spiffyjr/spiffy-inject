@@ -8,7 +8,7 @@ interface ServiceWrapper
      * Wraps the provided instance.
      *
      * @param Injector $i
-     * @param string $instance
+     * @param string $name
      * @param callable $callable
      * @return mixed
      */

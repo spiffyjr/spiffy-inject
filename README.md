@@ -183,6 +183,34 @@ $i->nject('foo', ['Foo',['@bar'],['setBaz' => '$baz']]);
 // the resulting Foo service would have '$this->bar' set to '\Bar' and '$this->baz' set to 'boogly'
 ```
 
+### ServiceFactories
+
+If you return an instance of `Spiffy\Inject\ServiceFactory` from an array configuration it will automatically create
+the instance for you and return that instead. This let's you inject parameters into Service Factories easily and reuse
+factories while still returning the instance you want.
+
+```php
+class ArrayObjectFactory implements ServiceFactory
+{
+    private $defaults;
+
+    public function __construct(array $defaults)
+    {
+        $this->defaults = $defaults;
+    }
+
+    public function createService(Injector $i)
+    {
+        return new \ArrayObject($this->defaults);
+    }
+}
+
+$i = new Injector();
+$i->nject('ArrayObject', ['ArrayObjectFactory', [['foo' => 'bar']]);
+
+$this->assertInstanceOf('StdClass', $i->nvoke('factory'));
+```
+
 ## Decorating your services
 
 Sometimes you want to over-ride the services set your DI container without modifying the original configuration. Spiffy\Inject handles this by providing you with two types of decorators.
