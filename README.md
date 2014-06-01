@@ -206,9 +206,9 @@ class ArrayObjectFactory implements ServiceFactory
 }
 
 $i = new Injector();
-$i->nject('ArrayObject', ['ArrayObjectFactory', [['foo' => 'bar']]);
 
-$this->assertInstanceOf('StdClass', $i->nvoke('factory'));
+// Result is an ArrayObject and *not* an ArrayObjectFactory
+$i->nject('ArrayObject', ['ArrayObjectFactory', [['foo' => 'bar']]);
 ```
 
 ## Decorating your services
