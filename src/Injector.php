@@ -75,7 +75,7 @@ class Injector implements \ArrayAccess
      */
     public function has($name)
     {
-        return array_key_exists($name, $this->specs);
+        return array_key_exists($name, $this->services) || array_key_exists($name, $this->specs);
     }
 
     /**
