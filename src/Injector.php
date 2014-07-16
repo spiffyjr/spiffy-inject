@@ -2,7 +2,7 @@
 
 namespace Spiffy\Inject;
 
-class Injector implements \ArrayAccess
+final class Injector implements \ArrayAccess
 {
     /**
      * @var string
