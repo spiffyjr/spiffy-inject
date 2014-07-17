@@ -103,13 +103,9 @@ final class Injector implements \ArrayAccess
     {
         if (array_key_exists($name, $this->services)) {
             return $this->services[$name];
-        }
-
-        if (in_array($name, $this->retrieving)) {
+        } elseif (in_array($name, $this->retrieving)) {
             throw new Exception\RecursiveDependencyException($name, $this->retrieving);
-        }
-
-        if (!array_key_exists($name, $this->specs)) {
+        } elseif (!array_key_exists($name, $this->specs)) {
             throw new Exception\ServiceDoesNotExistException($name);
         }
 
