@@ -324,13 +324,8 @@ final class Injector implements \ArrayAccess
         $args = isset($array[1]) ? $array[1] : [];
         $setters = isset($array[2]) ? $array[2] : [];
 
-        $args = (array) $args;
-        foreach ($args as &$arg) {
-            $arg = $this->introspect($arg);
-        }
-
         $class = new \ReflectionClass($class);
-        $instance = $class->newInstanceArgs($args);
+        $instance = $class->newInstanceArgs($this->introspectArgs($args));
 
         if ($instance instanceof ServiceFactory) {
             $instance = $instance->createService($this);
@@ -344,6 +339,20 @@ final class Injector implements \ArrayAccess
         }
 
         return $instance;
+    }
+
+    /**
+     * @param array $args
+     * @return array
+     */
+    protected function introspectArgs(array $args)
+    {
+        $args = (array) $args;
+        foreach ($args as &$arg) {
+            $arg = $this->introspect($arg);
+        }
+        
+        return $args;
     }
 
     /**
