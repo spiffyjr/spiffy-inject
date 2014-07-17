@@ -364,7 +364,21 @@ final class Injector implements \ArrayAccess
             return $this->get($name);
         }
 
+        return $this->getParameters($name);
+    }
+
+    /**
+     * @param string $name
+     * @return mixed|null
+     * @throws Exception\ParameterDoesNotExistException
+     * @throws Exception\ParameterKeyDoesNotExistException
+     */
+    protected function getParameters($name)
+    {
         $paramString = '';
+        
+        // split the foo and [baz][bar] from foo[baz][bar]
+        // foo becomes the root name and [baz][bar] are the keys in the root we're looking for
         if (preg_match('@([^\[]+)\[[^\]]+\]@', $name, $matches)) {
             $paramString = str_replace($matches[1], '', $name);
             $name = $matches[1];
@@ -376,6 +390,8 @@ final class Injector implements \ArrayAccess
 
         $original = $paramString;
         $value = $this->offsetGet($name);
+        
+        // iterate through the param string traversing the [baz][bar] keys until we have the final value
         while (preg_match('@^(\[([^\]]+)\])@', $paramString, $matches)) {
             $key = $matches[2];
             $paramString = str_replace($matches[1], '', $paramString);
@@ -390,7 +406,7 @@ final class Injector implements \ArrayAccess
                 break;
             }
         }
-
+        
         return $value;
     }
 }
