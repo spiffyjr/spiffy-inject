@@ -411,10 +411,23 @@ final class Injector implements \ArrayAccess
             throw new Exception\ParameterDoesNotExistException($name);
         }
 
-        $original = $paramString;
-        $value = $this->offsetGet($name);
+        return $this->getValueFromParameterString($name, $paramString, $this->offsetGet($name));
+    }
 
-        // iterate through the param string traversing the [baz][bar] keys until we have the final value
+    /**
+     * Iterate through the param string traversing the [baz][bar] keys until we have 
+     * the final value.
+     * 
+     * @param string $name
+     * @param string $paramString
+     * @param string $value
+     * @return mixed
+     * @throws Exception\ParameterKeyDoesNotExistException
+     */
+    protected function getValueFromParameterString($name, $paramString, $value)
+    {
+        $original = $paramString;
+
         while (preg_match('@^(\[([^\]]+)\])@', $paramString, $matches)) {
             $key = $matches[2];
             $paramString = str_replace($matches[1], '', $paramString);
@@ -429,7 +442,7 @@ final class Injector implements \ArrayAccess
                 break;
             }
         }
-
+        
         return $value;
     }
 }
