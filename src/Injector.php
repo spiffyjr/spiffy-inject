@@ -225,6 +225,8 @@ final class Injector implements \ArrayAccess
     }
 
     /**
+     * Creates the instance callback which is passed to the wrappers if they exist.
+     * 
      * @param string $name
      * @param mixed $spec
      * @return \Closure
@@ -238,21 +240,13 @@ final class Injector implements \ArrayAccess
         $callback = function () use ($name, $spec) {
             if ($spec instanceof \Closure) {
                 return $spec($this);
-            } 
-            
-            if ($spec instanceof ServiceFactory) {
+            } elseif ($spec instanceof ServiceFactory) {
                 return $spec->createService($this);
-            } 
-            
-            if (is_object($spec)) {
+            } elseif (is_object($spec)) {
                 return $spec;
-            } 
-            
-            if (is_array($spec)) {
+            } elseif (is_array($spec)) {
                 return $this->createFromArray($name, $spec);
-            }
-            
-            if (is_null($spec)) {
+            } elseif (is_null($spec)) {
                 throw new Exception\NullServiceException($name);
             }
 
