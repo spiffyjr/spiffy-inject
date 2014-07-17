@@ -321,23 +321,39 @@ final class Injector implements \ArrayAccess
             throw new Exception\MissingClassException($class, $name);
         }
 
-        $args = isset($array[1]) ? $array[1] : [];
         $setters = isset($array[2]) ? $array[2] : [];
+        $args = isset($array[1]) ? $array[1] : [];
+        
+        if (!is_array($args)) {
+            $args = [$args];
+        }
+        
+        $instance = $this->createInstanceFromClass($class, $args);
 
+        foreach ($setters as $method => $value) {
+            if (!method_exists($instance, $method)) {
+                continue;
+            }
+            $instance->$method($this->introspect($value));
+        }
+
+        return $instance;
+    }
+
+    /**
+     * @param string $class
+     * @param string|array $args
+     * @return object
+     */
+    protected function createInstanceFromClass($class, array $args)
+    {
         $class = new \ReflectionClass($class);
         $instance = $class->newInstanceArgs($this->introspectArgs($args));
 
         if ($instance instanceof ServiceFactory) {
             $instance = $instance->createService($this);
         }
-
-        $setters = (array) $setters;
-        foreach ($setters as $method => $value) {
-            if (method_exists($instance, $method)) {
-                $instance->$method($this->introspect($value));
-            }
-        }
-
+        
         return $instance;
     }
 

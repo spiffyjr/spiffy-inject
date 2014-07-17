@@ -462,7 +462,8 @@ class InjectorTest extends \PHPUnit_Framework_TestCase
                 ],
                 [
                     'setFoo' => '$foogly',
-                    'setBar' => '@boogly'
+                    'setBar' => '@boogly',
+                    'setDoesNotExist' => 'skip'
                 ]
             ]
         );
