@@ -238,13 +238,21 @@ final class Injector implements \ArrayAccess
         $callback = function () use ($name, $spec) {
             if ($spec instanceof \Closure) {
                 return $spec($this);
-            } elseif ($spec instanceof ServiceFactory) {
+            } 
+            
+            if ($spec instanceof ServiceFactory) {
                 return $spec->createService($this);
-            } elseif (is_object($spec)) {
+            } 
+            
+            if (is_object($spec)) {
                 return $spec;
-            } elseif (is_array($spec)) {
+            } 
+            
+            if (is_array($spec)) {
                 return $this->createFromArray($name, $spec);
-            } elseif (is_null($spec)) {
+            }
+            
+            if (is_null($spec)) {
                 throw new Exception\NullServiceException($name);
             }
 
