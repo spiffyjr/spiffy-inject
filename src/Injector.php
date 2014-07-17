@@ -64,6 +64,7 @@ final class Injector implements \ArrayAccess
      *
      * @see get
      * @param string $name
+     * @return mixed
      */
     public function nvoke($name)
     {
@@ -308,24 +309,28 @@ final class Injector implements \ArrayAccess
         if (!class_exists($class)) {
             throw new Exception\MissingClassException($class, $name);
         }
-
-        $setters = isset($array[2]) ? $array[2] : [];
-        $args = isset($array[1]) ? $array[1] : [];
-        
-        if (!is_array($args)) {
-            $args = [$args];
-        }
-        
-        $instance = $this->createInstanceFromClass($class, $args);
-
-        foreach ($setters as $method => $value) {
-            if (!method_exists($instance, $method)) {
-                continue;
-            }
-            $instance->$method($this->introspect($value));
-        }
+                
+        $instance = $this->createInstanceFromClass($class, isset($array[1]) ? $array[1] : []);
+        $this->injectSetterDependencies($instance, isset($array[2]) ? $array[2] : []);
 
         return $instance;
+    }
+
+    /**
+     * @param object $object
+     * @param array $setters
+     * @return object
+     */
+    protected function injectSetterDependencies($object, array $setters)
+    {
+        foreach ($setters as $method => $value) {
+            if (!method_exists($object, $method)) {
+                continue;
+            }
+            $object->$method($this->introspect($value));
+        }
+        
+        return $object;
     }
 
     /**
@@ -333,8 +338,12 @@ final class Injector implements \ArrayAccess
      * @param string|array $args
      * @return object
      */
-    protected function createInstanceFromClass($class, array $args)
+    protected function createInstanceFromClass($class, $args)
     {
+        if (!is_array($args)) {
+            $args = [$args];
+        }
+        
         $class = new \ReflectionClass($class);
         $instance = $class->newInstanceArgs($this->introspectArgs($args));
 
