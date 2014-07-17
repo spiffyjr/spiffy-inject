@@ -304,18 +304,33 @@ final class Injector implements \ArrayAccess
      */
     protected function createFromArray($name, array $array)
     {
-        $class = isset($array[0]) ? $this->introspect($array[0]) : null;
+        $class = $this->getDefaultIfUnset($array, 0, null);
+        $class = $this->introspect($class);
 
         if (!class_exists($class)) {
             throw new Exception\MissingClassException($class, $name);
         }
                 
-        $instance = $this->createInstanceFromClass($class, isset($array[1]) ? $array[1] : []);
-        $this->injectSetterDependencies($instance, isset($array[2]) ? $array[2] : []);
+        $instance = $this->createInstanceFromClass($class, $this->getDefaultIfUnset($array, 1, []));
+        $this->injectSetterDependencies($instance, $this->getDefaultIfUnset($array, 2, []));
 
         return $instance;
     }
 
+    /**
+     * @param array $array
+     * @param int $index
+     * @param $default
+     * @return mixed
+     */
+    protected function getDefaultIfUnset(array $array, $index, $default)
+    {
+        if (isset($array[$index])) {
+            return $array[$index];
+        }
+        return $default;
+    }
+    
     /**
      * @param object $object
      * @param array $setters
