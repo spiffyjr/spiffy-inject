@@ -63,6 +63,7 @@ final class Injector implements \ArrayAccess
      * Proxy to get. Why you ask? Because $i->nvoke() is so damn cute, that's why.
      *
      * @see get
+     * @param string $name
      */
     public function nvoke($name)
     {
@@ -229,7 +230,7 @@ final class Injector implements \ArrayAccess
     /**
      * @param string $name
      * @param mixed $spec
-     * @return callable
+     * @return \Closure
      */
     protected function createInstanceCallback($name, $spec)
     {
@@ -376,7 +377,7 @@ final class Injector implements \ArrayAccess
     protected function getParameters($name)
     {
         $paramString = '';
-        
+
         // split the foo and [baz][bar] from foo[baz][bar]
         // foo becomes the root name and [baz][bar] are the keys in the root we're looking for
         if (preg_match('@([^\[]+)\[[^\]]+\]@', $name, $matches)) {
@@ -390,7 +391,7 @@ final class Injector implements \ArrayAccess
 
         $original = $paramString;
         $value = $this->offsetGet($name);
-        
+
         // iterate through the param string traversing the [baz][bar] keys until we have the final value
         while (preg_match('@^(\[([^\]]+)\])@', $paramString, $matches)) {
             $key = $matches[2];
@@ -406,7 +407,7 @@ final class Injector implements \ArrayAccess
                 break;
             }
         }
-        
+
         return $value;
     }
 }
