@@ -226,7 +226,7 @@ final class Injector implements \ArrayAccess
 
     /**
      * Creates the instance callback which is passed to the wrappers if they exist.
-     * 
+     *
      * @param string $name
      * @param mixed $spec
      * @return \Closure
@@ -308,13 +308,13 @@ final class Injector implements \ArrayAccess
     {
         $spec = $this->getDefaultIfUnset($array, 0, null);
         $args = $this->getDefaultIfUnset($array, 1, []);
-        
+
         $instance = $this->createInstanceFromClass($name, $spec, $args);
-        
+
         if ($instance instanceof ServiceFactory) {
             $instance = $instance->createService($this);
         }
-        
+
         $this->injectSetterDependencies($instance, $this->getDefaultIfUnset($array, 2, []));
 
         return $instance;
@@ -333,7 +333,7 @@ final class Injector implements \ArrayAccess
         }
         return $default;
     }
-    
+
     /**
      * @param object $object
      * @param array $setters
@@ -347,12 +347,12 @@ final class Injector implements \ArrayAccess
             }
             $object->$method($this->introspect($value));
         }
-        
+
         return $object;
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @param string $class
      * @param string|array $args
      * @throws Exception\MissingClassException
@@ -365,13 +365,13 @@ final class Injector implements \ArrayAccess
         if (!class_exists($class)) {
             throw new Exception\MissingClassException($class, $name);
         }
-        
+
         if (!is_array($args)) {
             $args = [$args];
         }
-        
+
         $class = new \ReflectionClass($class);
-        return $class->newInstanceArgs($this->introspectArgs($args));        
+        return $class->newInstanceArgs($this->introspectArgs($args));
     }
 
     /**
@@ -384,7 +384,7 @@ final class Injector implements \ArrayAccess
         foreach ($args as &$arg) {
             $arg = $this->introspect($arg);
         }
-        
+
         return $args;
     }
 
@@ -412,7 +412,7 @@ final class Injector implements \ArrayAccess
 
     /**
      * @param string $name
-     * @return mixed|null
+     * @return string
      * @throws Exception\ParameterDoesNotExistException
      * @throws Exception\ParameterKeyDoesNotExistException
      */
@@ -435,13 +435,13 @@ final class Injector implements \ArrayAccess
     }
 
     /**
-     * Iterate through the param string traversing the [baz][bar] keys until we have 
+     * Iterate through the param string traversing the [baz][bar] keys until we have
      * the final value.
-     * 
+     *
      * @param string $name
      * @param string $paramString
      * @param string $value
-     * @return mixed
+     * @return string
      * @throws Exception\ParameterKeyDoesNotExistException
      */
     protected function getValueFromParameterString($name, $paramString, $value)
@@ -462,7 +462,7 @@ final class Injector implements \ArrayAccess
                 break;
             }
         }
-        
+
         return $value;
     }
 }
