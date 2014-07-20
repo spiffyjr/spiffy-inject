@@ -306,14 +306,15 @@ final class Injector implements \ArrayAccess
      */
     protected function createFromArray($name, array $array)
     {
-        $class = $this->getDefaultIfUnset($array, 0, null);
-        $class = $this->introspect($class);
-
-        if (!class_exists($class)) {
-            throw new Exception\MissingClassException($class, $name);
+        $spec = $this->getDefaultIfUnset($array, 0, null);
+        $args = $this->getDefaultIfUnset($array, 1, []);
+        
+        $instance = $this->createInstanceFromClass($name, $spec, $args);
+        
+        if ($instance instanceof ServiceFactory) {
+            $instance = $instance->createService($this);
         }
-                
-        $instance = $this->createInstanceFromClass($class, $this->getDefaultIfUnset($array, 1, []));
+        
         $this->injectSetterDependencies($instance, $this->getDefaultIfUnset($array, 2, []));
 
         return $instance;
@@ -351,24 +352,26 @@ final class Injector implements \ArrayAccess
     }
 
     /**
+     * @param $name
      * @param string $class
      * @param string|array $args
+     * @throws Exception\MissingClassException
      * @return object
      */
-    protected function createInstanceFromClass($class, $args)
+    protected function createInstanceFromClass($name, $class, $args)
     {
+        $class = $this->introspect($class);
+
+        if (!class_exists($class)) {
+            throw new Exception\MissingClassException($class, $name);
+        }
+        
         if (!is_array($args)) {
             $args = [$args];
         }
         
         $class = new \ReflectionClass($class);
-        $instance = $class->newInstanceArgs($this->introspectArgs($args));
-
-        if ($instance instanceof ServiceFactory) {
-            $instance = $instance->createService($this);
-        }
-        
-        return $instance;
+        return $class->newInstanceArgs($this->introspectArgs($args));        
     }
 
     /**
