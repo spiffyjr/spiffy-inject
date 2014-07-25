@@ -52,7 +52,11 @@ final class MetadataFactory
             ));
         }
 
-        $md->setName($serviceAnnotation->name);
+        if (null === $serviceAnnotation->name) {
+            $md->setName($className);
+        } else {
+            $md->setName($serviceAnnotation->name);
+        }
 
         foreach ($reflClass->getMethods() as $reflMethod) {
             $methodAnnotations = $this->reader->getMethodAnnotations($reflMethod);

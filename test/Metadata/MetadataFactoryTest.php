@@ -13,7 +13,19 @@ class MetadataFactoryTest extends \PHPUnit_Framework_TestCase
     private $factory;
 
     /**
-     * @covers ::__construct, ::getMetadataForClass
+     * @covers ::getMetadataForClass
+     */
+    public function testGetMetadataForUnnamedComponent()
+    {
+        $f = $this->factory;
+        $md = $f->getMetadataForClass('Spiffy\Inject\TestAsset\UnnamedComponent');
+        
+        $this->assertSame('Spiffy\Inject\TestAsset\UnnamedComponent', $md->getName());
+    }
+
+    /**
+     * @covers ::__construct
+     * @covers ::getMetadataForClass
      */
     public function testGetMetadataForClass()
     {
