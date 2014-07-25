@@ -53,6 +53,7 @@ final class Injector implements \ArrayAccess
      * Proxy to set. Why you ask? Because $i->nject() is so damn cute, that's why.
      *
      * @see set
+     * @param string $name
      */
     public function nject($name, $value)
     {

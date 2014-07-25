@@ -1,5 +1,5 @@
 <?php
- 
+
 namespace Spiffy\Inject\Loader;
 
 use Spiffy\Inject\Injector;

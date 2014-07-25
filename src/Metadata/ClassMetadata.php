@@ -1,5 +1,5 @@
 <?php
- 
+
 namespace Spiffy\Inject\Metadata;
 
 final class ClassMetadata implements Metadata

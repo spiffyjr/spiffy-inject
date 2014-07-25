@@ -1,5 +1,5 @@
 <?php
- 
+
 namespace Spiffy\Inject\Loader;
 
 use Spiffy\Inject\Annotation;
@@ -39,7 +39,7 @@ class ArrayLoader implements Loader
 
             $constructor[] = $value;
         }
-        
+
         return $constructor;
     }
 
@@ -61,7 +61,7 @@ class ArrayLoader implements Loader
                 $methods[$methodName] = $value;
             }
         }
-        
+
         return $methods;
     }
 

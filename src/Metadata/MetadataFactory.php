@@ -12,11 +12,11 @@ final class MetadataFactory
     private $loadedMetadata;
     /** @var \Doctrine\Common\Annotations\AnnotationReader */
     private $reader;
-        
+
     public function __construct()
     {
         $this->reader = new AnnotationReader();
-        
+
         foreach (glob(__DIR__ . '/../Annotation/*.php') as $file) {
             AnnotationRegistry::registerFile($file);
         }
@@ -42,28 +42,28 @@ final class MetadataFactory
     {
         $md = new ClassMetadata($className);
         $reflClass = $md->getReflectionClass();
-        
+
         $serviceAnnotation = $this->reader->getClassAnnotation($reflClass, 'Spiffy\\Inject\Annotation\\Component');
-        
+
         if (!$serviceAnnotation instanceof Annotation\Component) {
             throw new Exception\InvalidComponentException(sprintf(
                 'Class "%s" is not an injectable component: did you forget the @Component annotation?',
                 $className
             ));
         }
-        
+
         $md->setName($serviceAnnotation->name);
-       
+
         foreach ($reflClass->getMethods() as $reflMethod) {
             $methodAnnotations = $this->reader->getMethodAnnotations($reflMethod);
-            
+
             /** @var \Spiffy\Inject\Annotation\Method $annotation */
             foreach ($methodAnnotations as $annotation) {
                 if ($reflMethod->isConstructor()) {
                     $md->setConstructor($annotation->params);
                     continue;
                 }
-                
+
                 $md->addMethod($reflMethod->getName(), $annotation->params);
             }
         }

@@ -1,5 +1,5 @@
 <?php
- 
+
 namespace Spiffy\Inject\Metadata;
 
 interface Metadata
