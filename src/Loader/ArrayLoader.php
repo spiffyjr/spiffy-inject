@@ -12,7 +12,7 @@ class ArrayLoader implements Loader
      * {@inheritDoc}
      */
     public function load(Injector $i, Metadata $metadata)
-    {                
+    {
         $i->nject(
             $metadata->getName(),
             [
