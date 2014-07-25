@@ -13,6 +13,7 @@
         "php": ">=5.4"
     },
     "require-dev": {
+        "doctrine/annotations": "~1.2",
         "phpunit/phpunit": "~4.0",
         "squizlabs/php_codesniffer": "~1.0"
     },
@@ -23,6 +24,9 @@
                 "test/"
             ]
         }
+    },
+    "suggest": {
+        "doctrine/annotations": "~1.2, for creating services from annotations"
     },
     "extra": {
         "branch-alias": {
