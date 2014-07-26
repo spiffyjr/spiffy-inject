@@ -43,21 +43,32 @@ final class MetadataFactory
         $md = new ClassMetadata($className);
         $reflClass = $md->getReflectionClass();
 
-        $serviceAnnotation = $this->reader->getClassAnnotation($reflClass, 'Spiffy\\Inject\Annotation\\Component');
+        $component = $this->reader->getClassAnnotation($reflClass, 'Spiffy\\Inject\Annotation\\Component');
 
-        if (!$serviceAnnotation instanceof Annotation\Component) {
+        if (!$component instanceof Annotation\Component) {
             throw new Exception\InvalidComponentException(sprintf(
                 'Class "%s" is not an injectable component: did you forget the @Component annotation?',
                 $className
             ));
         }
 
-        if (null === $serviceAnnotation->name) {
+        if (null === $component->name) {
             $md->setName($className);
         } else {
-            $md->setName($serviceAnnotation->name);
+            $md->setName($component->name);
         }
 
+        $this->loadMetadataMethods($reflClass, $md);
+
+        $this->loadedMetadata[$className] = $md;
+    }
+
+    /**
+     * @param \ReflectionClass $reflClass
+     * @param ClassMetadata $md
+     */
+    private function loadMetadataMethods(\ReflectionClass $reflClass, ClassMetadata $md)
+    {
         foreach ($reflClass->getMethods() as $reflMethod) {
             $methodAnnotations = $this->reader->getMethodAnnotations($reflMethod);
 
@@ -71,7 +82,5 @@ final class MetadataFactory
                 $md->addMethod($reflMethod->getName(), $annotation->params);
             }
         }
-
-        $this->loadedMetadata[$className] = $md;
     }
 }

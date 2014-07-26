@@ -1,26 +1,23 @@
 <?php
 
-namespace Spiffy\Inject\Loader;
+namespace Spiffy\Inject\Generator;
 
 use Spiffy\Inject\Annotation;
 use Spiffy\Inject\Injector;
 use Spiffy\Inject\Metadata\Metadata;
 
-class ArrayLoader implements Loader
+class ArrayGenerator implements Generator
 {
     /**
      * {@inheritDoc}
      */
-    public function load(Injector $i, Metadata $metadata)
+    public function generate(Metadata $metadata)
     {
-        $i->nject(
-            $metadata->getName(),
-            [
-                $metadata->getClassName(),
-                $this->buildConstructor($metadata),
-                $this->buildMethods($metadata)
-            ]
-        );
+        return [
+            $metadata->getClassName(),
+            $this->buildConstructor($metadata),
+            $this->buildMethods($metadata)
+        ];
     }
 
     /**

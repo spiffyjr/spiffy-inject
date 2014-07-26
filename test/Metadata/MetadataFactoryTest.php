@@ -14,6 +14,7 @@ class MetadataFactoryTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers ::getMetadataForClass
+     * @covers ::loadMetadata
      */
     public function testGetMetadataForUnnamedComponent()
     {
@@ -26,6 +27,8 @@ class MetadataFactoryTest extends \PHPUnit_Framework_TestCase
     /**
      * @covers ::__construct
      * @covers ::getMetadataForClass
+     * @covers ::loadMetadata
+     * @covers ::loadMetadataMethods
      */
     public function testGetMetadataForClass()
     {

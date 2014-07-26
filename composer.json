@@ -6,7 +6,7 @@
             "email": "theman@spiffyjr.me"
         }
     ],
-    "description": "Spiffy\\Inject is a light-weight, HHVM compatible, and dependency lite dependency injection container.",
+    "description": "Spiffy\\Inject is a light-weight, HHVM compatible, and dependency lite DI container.",
     "license": "BSD-3-Clause",
     "require": {
         "doctrine/annotations": "~1.1",
@@ -15,7 +15,8 @@
     "require-dev": {
         "doctrine/annotations": "~1.2",
         "phpunit/phpunit": "~4.0",
-        "squizlabs/php_codesniffer": "~1.0"
+        "squizlabs/php_codesniffer": "~1.0",
+        "symfony/finder": "~2.1"
     },
     "autoload": {
         "psr-4": {
@@ -26,7 +27,8 @@
         }
     },
     "suggest": {
-        "doctrine/annotations": "~1.2, for creating services from annotations"
+        "doctrine/annotations": "~1.2, for creating components from annotations",
+        "symfony/finder": "~2.1, for using the Symfony Finder to find annotated components"
     },
     "extra": {
         "branch-alias": {
