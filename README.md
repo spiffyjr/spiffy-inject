@@ -41,6 +41,7 @@ The primary purpose of Spiffy\Inject is for managing your services. You can crea
  * Creating the service through a factory closure
  * Using the array configuration
  * Using an object that implements ServiceFactory
+ * Using annotations combined with a generator.
 
 All services are set through the `nject` method regardless of which style you choose. Each style has it's own advantages and disadvantages. It's you to you to decide which is the best approach to take for your application.
 
@@ -210,6 +211,94 @@ $i = new Injector();
 // Result is an ArrayObject and *not* an ArrayObjectFactory
 $i->nject('ArrayObject', ['ArrayObjectFactory', [['foo' => 'bar']]);
 ```
+
+### Annotations combined with a generator
+
+SpiffyInject provides annotations that you can use to assist in creating configurations for services.
+
+```php
+namespace Spiffy\Inject\TestAsset;
+
+use Spiffy\Inject\Annotation as Injector;
+
+/**
+ * @Injector\Component("inject.test-asset.annotated-component")
+ */
+class AnnotatedComponent
+{
+    /** @var \StdClass */
+    private $foo;
+    /** @var array */
+    private $params;
+    /** @var array */
+    private $setter;
+    
+    /**
+     * @Injector\Method({@Injector\Inject("foo"), @Injector\Param("params")})
+     */
+    public function __construct(\StdClass $foo, array $params)
+    {
+        $this->foo = $foo;
+        $this->params = $params;
+    }
+
+    /**
+     * @Injector\Method({@Injector\Param("setter")})
+     * 
+     * @param array $setter
+     */
+    public function setSetter($setter)
+    {
+        $this->setter = $setter;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSetter()
+    {
+        return $this->setter;
+    }
+
+    /**
+     * @return \StdClass
+     */
+    public function getFoo()
+    {
+        return $this->foo;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParams()
+    {
+        return $this->params;
+    }
+}
+```
+
+Now that you have an annotated class use the metadata factory to create metadata for the class and a generator
+to generate the Injector configuration.
+
+```php
+
+use Spiffy\Inject\Generator;
+use Spiffy\Inject\Metadata;
+
+$mdf = new Metadata\MetadataFactory();
+$md = $mdf->getMetadataForClass('Spiffy\Inject\TestAsset\AnnotatedComponent');
+
+$generator = new Generator\ArrayGenerator();
+
+$i = new Injector();
+$i->nject($md->getName(), $generator->generate($md));
+
+$i->nvoke($md->getName()); // instanceof Spiffy\Inject\TestAsset\AnnotatedComponent
+```
+
+Reading files, creating metadata, and generating configuration is a **heavy** process and is not intended for production.
+You should cache the results of the generation and use the cache in production.
 
 ## Decorating your services
 
